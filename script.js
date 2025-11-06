@@ -8,9 +8,9 @@ const backBtn = document.getElementById("back-btn");
 const mealDetailsContent = document.querySelector(".meal-details-content");
 
 
-const BASIC_URL = "https://www.themealdb.com/api/json/v1/1/"
-const SEARCH_URL = `${BASIC_URL}search.php?s=`
-const LOOKUP_URL = `${BASIC_URL}lookup.php?i=`
+const BASIC_URL = "https://www.themealdb.com/api/json/v1/1/";
+const SEARCH_URL = `${BASIC_URL}search.php?s=`;
+const LOOKUP_URL = `${BASIC_URL}lookup.php?i=`;
 
 
 searchBtn.addEventListener("click", searchMeals);
@@ -20,56 +20,45 @@ mealsContainer.addEventListener("click", handleMealClick);
 backBtn.addEventListener("click", () => mealDetails.classList.add("hidden"));
 
 searchInput.addEventListener("keypress", (e) => {
-    if (e.key == "Enter") searchMeals()
+    if (e.key == "Enter") searchMeals();
 
 })
 
 
-async function searchMeals () {
-       const searchTerm = searchInput.value.trim()
+async function searchMeals() {
+    const searchTerm = searchInput.value.trim();
 
-       if (!searchTerm) {
+    if (!searchTerm) {
         errorContainer.textContent = "Please enter a search term";
         errorContainer.classList.remove("hidden");
-
         return;
+    }
 
-       }
+    try {
+        resultHeading.textContent = `Searching for "${searchTerm}"...`;
+        mealsContainer.innerHTML = "";
+        errorContainer.classList.add("hidden");
 
+        // fetch meals from api
+        const response = await fetch(`${SEARCH_URL}${searchTerm}`);
+        const data = await response.json();
+
+        if (data.meals === null) {
+            resultHeading.textContent = ``;
+            mealsContainer.innerHTML = "";
+            errorContainer.textContent = `No recipes found for "${searchTerm}". Try another search term!`;
+            errorContainer.classList.remove("hidden");
+        } else {
+            resultHeading.textContent = `Search results for "${searchTerm}"`;
+            displayMeals(data.meals);
+            searchInput.value = "";
+        }
+    } catch (error) {
+        errorContainer.textContent = "Something went wrong. Please try again later.";
+        errorContainer.classList.remove("hidden");
+    }
 }
 
-
-try {
-   resultHeading.textContent = `Searching for "${searchTerm}"...`
-
-   mealsContainer.innerHTML = "";
-   errorContainer.classList.add("hidden");
-
-//    fetch meals from api
-   const response = await fetch(`${SEARCH_URL}${searchTerm}`);
-   const data = await response.json();
-
-
-   if (data.meals === null) {
-    resultHeading.textContent = ``
-    mealsContainer.innerHTML = ""
-    errorContainer.textContent = `No recipes found for "${searchTerm}". Try another search term!`
-
-    errorContainer.classList.remove("hidden")
-
-   } else {
-    resultHeading.textContent = `Search results for "${searchTerm}"`
-    
-    displayMeals(data.meals)
-    searchInput.value = ""
-
-   }
-
-
-} catch (error) {
-   errorContainer.textContent = "Something went wrong. Please try again later.";
-   errorContainer.classList.remove("hidden");
-}
 
 
 
@@ -97,23 +86,23 @@ async function handleMealClick (e) {
 
    if (!mealEl) return;
 
-   const mealId = mealEl.getattribute("data-meal-id")
+   const mealId = mealEl.getAttribute("data-meal-id");
 
    try {
       const response = await fetch(`${LOOKUP_URL}${mealId}`);
       const data = await response.json();
 
 
-      if (data.meals && data.meals(0)) {
-         const meal = data.meals(0);
+      if (data.meals && data.meals[0]) {
+         const meal = data.meals[0];
 
          const ingredients = [];
          for (let i = 1; i <= 20; i++) {
-            if (meal[`strIngredient${i})`] && meal[`strIngredient${i}`].trim() !== "") {
+            if (meal[`strIngredient${i}`] && meal[`strIngredient${i}`].trim() !== "") {
                ingredients.push({
                   ingredient: meal[`strIngredient${i}`],
                   measure: meal[`strMeasure${i}`]
-               })
+               });
             }
 
          }
@@ -153,7 +142,7 @@ async function handleMealClick (e) {
             
             `;
             mealDetails.classList.remove("hidden");
-            mealDetails.scrollIntoView({behaviour: "smooth"});
+            mealDetails.scrollIntoView({behavior: "smooth"});
       }
 
    } catch (error){
